@@ -23,7 +23,7 @@ class Calculator:
         NOW = dt.date.today()  # Дата на данный момент
         week = NOW - dt.timedelta(weeks=1)  # Промежуток в неделю от NOW
         result = sum(record.amount for record in self.records
-                     if  week < record.date <= NOW)
+                     if week < record.date <= NOW)
         return result  # Сумма amount за неделю
 
     def get_left_amount(self):
@@ -59,7 +59,7 @@ class CashCalculator(Calculator):
             'eur': ('Euro', self.EURO_RATE),
             'usd': ('USD', self.USD_RATE)
         }
-        response = (f'{abs((round(left_amount / currencies[currency][1], 2)))} '
+        response = (f'{abs((round(left_amount/currencies[currency][1], 2)))} '
                     f'{currencies[currency][0]}')
         if left_amount == 0:
             return 'Денег нет, держись'
