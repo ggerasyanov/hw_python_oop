@@ -53,17 +53,21 @@ class CashCalculator(Calculator):
         """В качестве аргумента принимает валюту (по умолчанию рубли),
         затем определяет достинуг ли лимит и возвращает остатко если он есть.
         """
-        left_amount = self.get_left_amount()  # Остаток денег
         currencies = {
             'rub': ('руб', self.RUB_RATE),
             'eur': ('Euro', self.EURO_RATE),
             'usd': ('USD', self.USD_RATE)
         }
-        response = (f'{abs((round(left_amount/currencies[currency][1], 2)))} '
-                    f'{currencies[currency][0]}')
+        # Выбирает нужное значение из currencies:
+        choice_currency = currencies[currency]
+        # Остаток денег:
+        left_amount = self.get_left_amount()
+        # Считатет остатко согласно указанной валюте:
+        count_left_amount = abs((round(left_amount/choice_currency[1], 2)))
+        response = (f'{count_left_amount} {choice_currency[0]}')
         if left_amount == 0:
             return 'Денег нет, держись'
-        elif left_amount < 0:
+        if left_amount < 0:
             return f'Денег нет, держись: твой долг - {response}'
         return f'На сегодня осталось {response}'
 
