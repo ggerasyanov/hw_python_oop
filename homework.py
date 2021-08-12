@@ -63,7 +63,7 @@ class CashCalculator(Calculator):
         # Остаток денег:
         left_amount = self.get_left_amount()
         # Считатет остатко согласно указанной валюте:
-        count_left_amount = abs((round(left_amount/choice_currency[1], 2)))
+        count_left_amount = abs((round(left_amount / choice_currency[1], 2)))
         response = (f'{count_left_amount} {choice_currency[0]}')
         if left_amount == 0:
             return 'Денег нет, держись'
