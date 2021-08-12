@@ -1,7 +1,5 @@
 import datetime as dt
 
-NOW = dt.date.today()  # Дата на данный момент
-
 
 class Calculator:
     """Родительский класс для калькулятора денег и каллорий."""
@@ -15,21 +13,28 @@ class Calculator:
 
     def get_today_stats(self):
         """Возвращает значение суммы потраченного/съеденного за сегодня."""
+        NOW = dt.date.today()  # Дата на данный момент
         sym_amount = sum(record.amount for record in self.records
                          if record.date == NOW)
         return sym_amount  # Сумма amount за сегодня
 
     def get_week_stats(self):
         """Возвращает значение суммы потраченного/съеденного за неделю."""
+        NOW = dt.date.today()  # Дата на данный момент
         week = NOW - dt.timedelta(weeks=1)  # Промежуток в неделю от NOW
         result = sum(record.amount for record in self.records
-                     if record.date > week and record.date <= NOW)
+                     if  week < record.date <= NOW)
         return result  # Сумма amount за неделю
+
+    def get_left_amount(self):
+        """Возвращает остаток на сегодня"""
+        return self.limit - self.get_today_stats()
 
 
 class Record:
     """Класс для хранения записей. Хранит количество, комментарий и дату."""
     def __init__(self, amount, comment, date=None):
+        NOW = dt.date.today()  # Дата на данный момент
         self.amount = amount
         self.comment = comment
         if date is not None:
@@ -42,42 +47,25 @@ class CashCalculator(Calculator):
     """Калькулятор потраченных денег"""
     USD_RATE = 70.0  # Курс доллара
     EURO_RATE = 85.0  # Курс евро
+    RUB_RATE = 1.0  # Курс рубля
 
     def get_today_cash_remained(self, currency='rub'):
         """В качестве аргумента принимает валюту (по умолчанию рубли),
         затем определяет достинуг ли лимит и возвращает остатко если он есть.
         """
-        sym_amount = self.get_today_stats()  # Сумма amount за сегодня
-        left_money = self.limit - sym_amount  # Остаток денег
-        euro = left_money / self.EURO_RATE  # Остаток в евро
-        usd = left_money / self.USD_RATE  # Остаток в доллорах
-        if currency == 'eur':
-            if left_money == 0:
-                return 'Денег нет, держись'
-            elif left_money < 0:
-                return ('Денег нет, держись: твой долг - '
-                        f'{abs(euro):.2f} Euro')
-            else:
-                return ('На сегодня осталось '
-                        f'{euro:.2f} Euro')
-        elif currency == 'usd':
-            if left_money == 0:
-                return 'Денег нет, держись'
-            elif left_money < 0:
-                return ('Денег нет, держись: твой долг - '
-                        f'{abs(usd):.2f} USD')
-            else:
-                return ('На сегодня осталось '
-                        f'{usd:.2f} USD')
-        else:
-            if left_money == 0:
-                return 'Денег нет, держись'
-            elif left_money < 0:
-                return('Денег нет, держись: твой долг - '
-                       f'{abs(left_money)} руб')
-            else:
-                return ('На сегодня осталось '
-                        f'{left_money} руб')
+        left_amount = self.get_left_amount()  # Остаток денег
+        currencies = {
+            'rub': ('руб', self.RUB_RATE),
+            'eur': ('Euro', self.EURO_RATE),
+            'usd': ('USD', self.USD_RATE)
+        }
+        response = (f'{abs((round(left_amount / currencies[currency][1], 2)))} '
+                    f'{currencies[currency][0]}')
+        if left_amount == 0:
+            return 'Денег нет, держись'
+        elif left_amount < 0:
+            return f'Денег нет, держись: твой долг - {response}'
+        return f'На сегодня осталось {response}'
 
 
 class CaloriesCalculator(Calculator):
@@ -86,11 +74,8 @@ class CaloriesCalculator(Calculator):
         """Определяет достигнут ли лимит каллорий на сегодня.
         Выбиравает ответ в зависимости от результата.
         """
-        sym_amount = self.get_today_stats()  # Сумма amount за сегодня
-        # Остаток каллорий на сегодня:
-        left_calories = (self.limit - sym_amount)
-        if left_calories >= 0:
+        left_amount = self.get_left_amount()
+        if left_amount >= 0:
             return ('Сегодня можно съесть что-нибудь ещё, '
-                    f'но с общей калорийностью не более {left_calories} кКал')
-        else:
-            return 'Хватит есть!'
+                    f'но с общей калорийностью не более {left_amount} кКал')
+        return 'Хватит есть!'
